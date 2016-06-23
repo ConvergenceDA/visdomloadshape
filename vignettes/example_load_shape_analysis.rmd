@@ -1,0 +1,74 @@
+---
+title: "Load Shape Clustering"
+author: "Sam Borgeson"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Load Shape Clustering}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+Load VISDOM module and instantiate your customer data source.
+```{r eval=F}
+library(visdom)
+# First implement your own DataSource with method implementations of DataSource interface methods
+# Instantiate your data source
+DATA_SOURCE = TestData()
+
+# source load shape clustering support functions
+#source('utility.R') # should be 'loadShapeCluter.R'
+#require('akmeans')  # adaptive K-means v1.1 library from CRAN
+#source('akmeans.R') # temporary override required
+
+```
+
+1. load 1 hour aligned data
+
+Hourly aligned data has the following format:
+365 rows per customer, each covering the same 1 year period, with columns:
+meter ID, customer ID, date, 24 observation columns by hour of day, starting with the hour ending at 1AM
+
+```{r eval=F}
+
+hourlyAlignedData = DATA_SOURCE$getHourlyAlignedData(n=10)
+```
+
+2. create a load shape dictionary (via adaptive K-means clustering)
+WARNING: this will run for a long time if you have several thousand customers and you may want to sub-sample your data to reduce run times!
+
+```{r eval=F}
+dict100 = create_dictionary(hourlyAlignedData[,5:28], target.size=10, mode=1, d.metric=1, ths=0.2, iter.max=100, nstart=1, two.step.compress=F, verbose=F)
+```
+
+3. More useful: create dictionary and shape encodings together
+ Returned as a list of the form: list(clean.data = cdata, dictionary = dic, encoded.data = encoded)
+ 
+```{r eval=F}
+encodedOut    = raw2encoded(hourlyAlignedData[,5:28], use.all = T, s.size = 100000, target.size=100, mode=1, d.metric=1, ths=0.2, iter.max=100, nstart=1, two.step.compress=F,verbose=F)
+dict100       = encodedOut$dictionary
+encodings100  = encodedOut$encoded.data # first colum: encoding of all load shapes, 2nd: total daily energy, 3rd: daily sum of squared errors, 4th: relative square error
+```
+
+4. plot top 10 load shapes
+
+```{r eval=F}
+top.n.shapes(encodings100[,1], en.s=encodings100[,1], dic=dict100, n=10, show.avg=0)
+```
+
+5. calculate entropy of load shapes (metric of how variable load shapes are for each customer)
+
+```{r eval=F}
+cust1Id = unique(hourlyAlignedData[,1])[1] # first customer ID
+cust1Rows = hourlyAlignedData[,1] == custId # identify the rows of the aligned data and therefore encodings that belong to the first customer
+cust1Entropy = shannon.entropy(encodings100[cust1Rows,1])
+```
+
+Other options, rmd TODOs:
+```{r eval=F}
+# loop through all customers and build an array of entropy values to put into a histogram.
+
+# us the same data to produce the average energy / entropy scatter
+
+# define some segmentation criteria ???
+```
