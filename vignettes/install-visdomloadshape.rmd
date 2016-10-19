@@ -1,10 +1,10 @@
 ---
-title: "Installing visdom-loadshape"
+title: "Installing visdomloadshape"
 author: "Sam Borgeson"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Installing VISODM load shapes}
+  %\VignetteIndexEntry{Installing VISODM load shape}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -28,7 +28,7 @@ myPAT = 'get_this_from_your_github_account' # from https://github.com/settings/t
 # however, this will invoke other dependencies that might complicate things.
 # It can be set to F to just get the core code installed, but much of the documentation
 # effort to date has been in the form of vignettes.
-devtools::install_github("sborgeson/visdom-loadshape", auth_token=myPAT, build_vignettes=T )
+devtools::install_github("sborgeson/visdomloadshape", auth_token=myPAT, build_vignettes=T )
 ```
 
 ##Install VISDOM Load Shapes directly from local source
@@ -39,8 +39,8 @@ First ensure that you have cloned the repository into working version only your 
 
 ```{bash eval=F}
 cd /dev
-git clone git@github.com:sborgeson/visdom-loadshape.git
-git clone https://github.com/sborgeson/visdom-loadshape.git
+git clone git@github.com:sborgeson/visdomloadshape.git
+git clone https://github.com/sborgeson/visdomloadshape.git
 ```
 
 If you are working within a corporate firewall, it may be necessary to use a proxy server account to connect to GitHub. Here you will need to replace the user and pass with your usernam and password and `proxy.server` with either the name or ip address of your proxy server. The port `8080` may also be different for your specific configuration.
@@ -57,7 +57,7 @@ Then using that location as as your working directory (here we assume `/dev/visd
 
 install.packages(c("devtools"))
 
-setwd('/dev/visdom-loadshape')
+setwd('/dev/visdomloadshape')
 
 devtools::install(build_vignettes = T)
 
@@ -67,7 +67,7 @@ devtools::install(build_vignettes = T)
 Now check that you can load VISDOM and use it.
 
 ```{r eval=F}
-library(visdom-loadshape)
+library(visdomloadshape)
 ```
 
 Browse through the available vignettes.
@@ -75,13 +75,13 @@ Browse through the available vignettes.
 ```{r eval=F}
 # if you built them above, you can browse well formatted 
 # code vignettes that provide example usage.
-browseVignettes('visdom-loadshape')
+browseVignettes('visdomloadshape')
 ```
 
 Or the original/old school way.
 ```{r eval=F}
 # to list
-vignette(package='visdom-loadshape')
+vignette(package='visdomloadshape')
 # to display a specific one as help
-vignette('example_load_shape_analysis',package='visdom-loadshape')
+vignette('example_load_shape_analysis',package='visdomloadshape')
 ```

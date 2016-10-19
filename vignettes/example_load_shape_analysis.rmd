@@ -12,6 +12,7 @@ vignette: >
 Load VISDOM module and instantiate your customer data source.
 ```{r eval=F}
 library(visdom)
+library(visdomloadshape)
 # First implement your own DataSource with method implementations of DataSource interface methods
 # Instantiate your data source
 DATA_SOURCE = TestData()
@@ -53,14 +54,14 @@ encodings100  = encodedOut$encoded.data # first colum: encoding of all load shap
 4. plot top 10 load shapes
 
 ```{r eval=F}
-top.n.shapes(encodings100[,1], en.s=encodings100[,1], dic=dict100, n=10, show.avg=0)
+draw.top.n.shapes(encodings100[,1], en.s=encodings100[,1], dic=dict100, n=10, show.avg=0)
 ```
 
 5. calculate entropy of load shapes (metric of how variable load shapes are for each customer)
 
 ```{r eval=F}
 cust1Id = unique(hourlyAlignedData[,1])[1] # first customer ID
-cust1Rows = hourlyAlignedData[,1] == custId # identify the rows of the aligned data and therefore encodings that belong to the first customer
+cust1Rows = hourlyAlignedData[,1] == cust1Id # identify the rows of the aligned data and therefore encodings that belong to the first customer
 cust1Entropy = shannon.entropy(encodings100[cust1Rows,1])
 ```
 

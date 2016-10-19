@@ -1,8 +1,8 @@
 # Copyright 2016 The Board of Trustees of the Leland Stanford Junior University.
-# Direct inquiries to Sam Borgeson (sborgeson@stanford.edu) 
+# Direct inquiries to Sam Borgeson (sborgeson@stanford.edu)
 # or professor Ram Rajagopal (ramr@stanford.edu)
 
-library(class) # for knn
+#library(class) # for knn
 # encoding.dict is the dictionary that will be used to return the cluster, SE, and RSE columns of the
 # encodings and can be used to calculate customer shape stats.If it is not provided, the category-mapped
 # dict will be used.
@@ -47,7 +47,7 @@ shapeCategoryEncoding = function(rawData,metaCols=1:4,encoding.dict=NULL) {
 
   # build a map between the encoding dict and the category mapped dict and use it to look up the matching categories
   encoding.dict.categories  = dict.category.mappings[
-                                knn(category.mapped.dict,encoding.dict, 1:nrow(category.mapped.dict)) ]
+                                class::knn(category.mapped.dict,encoding.dict, 1:nrow(category.mapped.dict)) ]
 
   encoding.dict.category.info      = data.frame(cluster=as.numeric(row.names(encoding.dict)),category=encoding.dict.categories,name=shapeCategories[encoding.dict.categories])
   encoding.dict.category.info$name = paste(encoding.dict.category.info$name)

@@ -14,24 +14,9 @@ Depends:
     R (>= 3.1.0)
 Imports:
     akmeans (>= 1.1),
-    plyr,
-    dplyr,
-    lubridate,
-    timeDate,
-    cvTools,
-    sandwich,
-    lmtest,
-    AER,
-    RColorBrewer,
-    ggplot2,
-    solaR,
-    gridExtra,
-    testthat,
-    digest,
-    DBI
+    class,
+    visdom
 Suggests:
-    foreach,
-    doParallel,
     foreign,
     knitr,
     roxygen,

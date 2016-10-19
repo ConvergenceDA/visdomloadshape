@@ -1,24 +1,39 @@
 
-## calculate shannon entropy
+#' @title calculate shannon entropy
+#'
+#' @description a sequence of load shape cluster assignments is a perfect candidate for calculating the Shannon Entropy of a sequence of symbols.
+#'
+#' @param p is frequency table or probability distribution vector
+#'
 #' @export
 shannon.entropy=function(p){
-  ## p is frequency table or probability distribution vector
   if (min(p) < 0 | sum(p) <= 0)  return(NA)
   p.norm = p[p>0]/sum(p)
   -sum(log2(p.norm)*p.norm)
 }
 
+#' @title calculate shannon entropy
+#'
+#' @description a sequence of load shape cluster assignments is a perfect candidate for calculating the Shannon Entropy of a sequence of symbols.
+#'
+#' @param p a sequence of dictionary encoded load days
+#'
 #' @export
 # TODO: remove this function and replace it with an auto-build of a table if necessary in the main function
 shannon.entropy2=function(p){
-  ## p is a sequence of events
+  ##
   return( shannon.entropy( as.numeric(table(p)) ) )
 }
 
-## normalize the raw smart meter data
+#' @title normalize raw smart meter data
+#'
+#' @description divide each day of consumption, to get rows (days) of normalized consumption
+#'
+#' @param A consumption data matrix, each row corresponds to a daily profile
+#' @param mod mode of operation with 1: Euclidean (divide by the sqrt of the sum of squares) 2: L1 norm (divide by the sum)
+#'
+#' @export
 quick.norm = function(A,mod=2){
-  ## A: consumption data matrix, each row corresponds to a daily profile
-  ## mod: 1: Euclidean 2: L1
   if (mod==1){
     t(apply(A,1,function(i){
       if (sum(i)==0) {return(i)}
@@ -80,11 +95,16 @@ m.kNNImpute = function (x, k, verbose = T)
     return(list(x = x, missing.matrix = missing.matrix))
 }
 
-## imputation function
+#' @title Meter data imputation function
+#'
+#' @description Imputation function to fill in the blanks of an array of meter data. It assumes the input rows come from the same smart meter and are ordered by date.
+#'
+#' @param A input data matrix, one row per day of meter data, at least two rows should be valid
+#' @param uidx usage column idx, for example, if A is just hourly consumption data (n by 24 matrix), uidx should be 1:24
+#'
+#' @export
 impute=function(A,uidx=4:99){
-## assume the input comes from the same smart meter and ordered by date
-## A: input data matrix, at least two rows should be valid
-## uidx: usage column idx, for example, if A is just hourly consumption data (n by 24 matrix), uidx should be 1:24
+
   n = nrow(A);need = 0 ## need to run knn impute
   n.na = apply(A[,uidx],1,function(i){sum(is.na(i))})
   im.idx = which(n.na>0)
@@ -109,21 +129,25 @@ impute=function(A,uidx=4:99){
   A
 }
 
-## encoding function (load shape code, daily consumption, squared error, relative squred error
+#' @title encode meter data load shapes according to an existing dictionary
+#'
+#' @description given a matrix of raw meter data (one day per row), encodes each day into the closest fit culster
+#'
+#' @param rdata raw data as a matrix with each row as a day of load data
+#' @param dic dictionary of cluster centers to use for encodings
+#' @param relerror whether to include relative error information in result
+
+#' @return encoding: closest shape code, daily sum, L2 err on normalized data, estimated threshold (relative L2 error)
+#'
 #' @export
 encode = function(rdata, dic, relerror=0){
-  ## rdata: raw data
-  ## dic: dictionary
-  ## relerror: whether to include relative error information in result
 
-  ## encoding: closest shape code, daily sum, L2 err on normalized data, estimated threshold (relative L2 error)
   n = nrow(rdata); p=ncol(rdata)
   ndata = t(apply(rdata,1,function(i){
       if (sum(i)==0) {return(i)}
       else {i/sum(i)}}))
   encoded = matrix(0,n,4)
-  require(class)
-  knnres = knn(dic,ndata,1:nrow(dic))
+  knnres = class::knn(dic,ndata,1:nrow(dic))
   encoded[,1] = knnres
   encoded[,2] = apply(rdata,1,sum)
   encoded[,3] = apply((ndata - dic[knnres,])^2,1,sum)
@@ -139,11 +163,18 @@ encode = function(rdata, dic, relerror=0){
   } else return(encoded)
 }
 
-## reduce the dictionary size hierarchically
+#' @title reduce the dictionary size hierarchically
+#'
+#' @description uses k nearest neighbors (\code{class::knn}) to reduce the size of the passed dictionary to a target number of entries by merging the most similar clusters.
+#'
+#' @param dic dictionary(=cluster centers) /
+#' @param cl.size size of each cluster /
+#' @param t.num target dictionary size
+#' @param d.metric distance metric to use for similarity comparison == 1: Euclidean, ==2: Cosine
+#'
 #' @export
 reduce.dictionary=function(dic,cl.size,t.num=1000,d.metric=1){
-  ## d.metric == 1: Euclidean, ==2: Cosine
-  ## dic: dictionary(=cluster centers) / cl.size: size of each cluster / t.num: target dictionary size
+
   n = nrow(dic)
   dist.mat = matrix(10000,n,n)
   for (i in 1:(n-1)){
@@ -215,12 +246,15 @@ lifestyle.distance=function(dist.mat,lsv1,lsv2){
   d
 }
 
-## function to draw top n shapes from encoded result
+#' @title plot top n shapes from encoded result
+#'
+#' @description plots the top n shapes from an encoded result
+#' @param en encoded data / en.s: encoded daily sum / dic: dictionary
+#' @param n number of top load shapes
+#' @param show.avg whether to show avg consumption per load shape. if >0, en.s should have the same dimension with en
+#'
 #' @export
 draw.top.n.shapes = function(en,en.s=0,dic, n=4, show.avg=0){
-## en: encoded data / en.s: encoded daily sum / dic: dictionary
-## n: number of top load shapes
-## show.avg: whether to show avg consumption per load shape. if >0, en.s should have the same dimension with en
   en = as.vector(en)
   en.s = as.vector(en.s)
   ten = table(en)
@@ -263,14 +297,20 @@ calculate.emd = function(a,b){
   sum(abs(emd))
 }
 
-## calculate the distance btw two dictionaries
+#' @title calculate the distance btw two dictionaries
+#'
+#' @description calculate the distance btw two dictionaries
+#' @param A first dictionary: n1 by p matrix
+#' @param B second dictionary: n2 by p matrix
+#' @param pa probability distribution vector of dictionary A
+#' @param pb probability distribution vector of dictionary B
+#' @param emd whether to estimate the distance btw two load shapes as EMD (earth mover distance) or L1 distance/2
+#' @param same whether A and B are the same dictionaries or not
+#' @param tmpdist user can provide the distance matrix (n1 by n2) btw the dictionaries A and B if already calculated
+#'
+#' @export
 dictionary.distance = function(A,B,pa = 1,pb = 1, emd=1, same=0,tmpdist=NULL){
-  ## dictionary A,B: n1 by p and n2 by p matrix
-  ## pa: probability distribution vector of dictionary A
-  ## pb: probability distribution vector of dictionary B
-  ## emd: whether to estimate the distance btw two load shapes as EMD or L1 distance/2
-  ## same: whether A and B are the same dictionaries or not
-  ## tmpdist: user can provide the distance matrix (n1 by n2) btw the dictionaries A and B if already calculated
+
 
   n1=nrow(A);p=ncol(A)
   n2=nrow(B)
@@ -402,32 +442,35 @@ dictionary.distance2 = function(dic,shift.allow=0,d.metric=1){
   } else return(dist.mat)
 }
 
-## this function gets standardized data and create a dictionary
+#' @title Perform load shape clusing and return cluster centers
+#'
+#' @description This function takes load shape data in a standardized matrix format and creates a dictionary of resulting cluster centers
+#'
+#' @param sdata source data, assume it's already standardized (cleansed and n by p matrix format)
+#' @param target.size target size of the dictionary (i.e. nubmer of clusters)
+#' @param mode 1: use ths1, 2: use ths2, 3: use ths3, 4: use ths4
+#' @param d.metric 1: use euclidean distance metric, otherwise use cosine distance metric
+#' @param ths will be transferred to akmeans parameter according to mode setting
+#' \code{ths1}: threshold to decide whether to increase k or not: check sum((sample-assigned center)^2) < ths1*sum(assigned center^2)
+#' \code{ths2}: threshold to decide whether to increase k or not: check all components of |sample-assigned center| < ths2
+#' \code{ths3}: threshold to decide whether to increase k or not: check inner product of (sample,assigned center) > ths3 , this is only for cosine distance metric
+#' \code{ths4}: threshold to decide whether to increase k or not: check sum(abs(sample-assigned center)) < ths4
+#' @param iter.max maximum iteration setting to be used in kmeans
+#' @param n.start parameter to be transferred to kmeans
+#' @param two.step.compress whether to reduce the dictionary only by hierarchical clustering or hier+use top N shapes.
+#' this option gets activated only when the ratio (original dictionary size before compression/target.size) is larger than 10
+#' @param verbose whether to show log or not
+#'
 #' @export
 create_dictionary = function(sdata,target.size=1000, mode=1, d.metric=1, ths=0.2, iter.max=100,
 							 nstart=1, two.step.compress=F,verbose=F){
-  require('akmeans') ## with akmeans version 1.1
-  ## sdata: source data, assume it's already standardized (cleansed and n by p matrix format)
-  ## target.size: wanted dictionary size
-  ## mode: 1: use ths1, 2: use ths2, 3: use ths3, 4: use ths4
-  ## d.metric: 1: use euclidean distance metric, otherwise use cosine distance metric
-  ## ths will be transferred to akmeans parameter according to mode setting
-  ## ths1: threshold to decide whether to increase k or not: check sum((sample-assigned center)^2) < ths1*sum(assigned center^2)
-  ## ths2: threshold to decide whether to increase k or not: check all components of |sample-assigned center| < ths2
-  ## ths3: threshold to decide whether to increase k or not: check inner product of (sample,assigned center) > ths3 , this is only for cosine distance metric
-  ## ths4: threshold to decide whether to increase k or not: check sum(abs(sample-assigned center)) < ths4
-  ## iter.max: maximum iteration setting to be used in kmeans
-  ## n.start: parameter to be transferred to kmeans
-  ## two.step.compress: whether to reduce the dictionary only by hierarchical clustering or hier+use top N shapes.
-  ## two.step.compress, this option gets activated only when the ratio (original dictionary size before compression/target.size) is larger than 10
-  ## verbose: whether to show log or not
+
 
   sdata = sdata[apply(sdata,1,sum)>0,]
   if (d.metric==1) sdata = quick.norm(sdata) ## if euclidean distance, normalize here. for cosine, akmeans will handle
 
-  require('akmeans')
   gc()
-  akmres = akmeans(x = sdata, min.k = round(target.size/4), max.k = 99999,
+  akmres = akmeans::akmeans(x = sdata, min.k = round(target.size/4), max.k = 99999,
                    mode=mode, d.metric=d.metric, ths1=ths,ths2=ths,ths3=ths,ths4=ths, iter.max=iter.max, nstart=nstart,verbose=verbose)
   if (two.step.compress & nrow(akmres$centers)/target.size>10) {
     ratio = nrow(akmres$centers)/target.size
@@ -441,14 +484,32 @@ create_dictionary = function(sdata,target.size=1000, mode=1, d.metric=1, ths=0.2
   return(rdic)
 }
 
+#' @title Cluster meter data into the best fit shape clusters and return clsuter assignments
+#'
+#' @description Useful for generation of a load shape cluster center dictionary and encoding in one shot
+#'
+#' @param rdata rawdata of format n by p matrix
+#' @param is.clean whether to do cleansing or not
+#' @param use.all whether to use all data to generate a dictionary or not
+#' @param s.size sample size to use to generate a dictionary
+#' @param target.size target size of the dictionary (i.e. nubmer of clusters)
+#' @param mode 1: use ths1, 2: use ths2, 3: use ths3, 4: use ths4
+#' @param d.metric 1: use euclidean distance metric, otherwise use cosine distance metric
+#' @param ths will be transferred to akmeans parameter according to mode setting
+#' \code{ths1}: threshold to decide whether to increase k or not: check sum((sample-assigned center)^2) < ths1*sum(assigned center^2)
+#' \code{ths2}: threshold to decide whether to increase k or not: check all components of |sample-assigned center| < ths2
+#' \code{ths3}: threshold to decide whether to increase k or not: check inner product of (sample,assigned center) > ths3 , this is only for cosine distance metric
+#' \code{ths4}: threshold to decide whether to increase k or not: check sum(abs(sample-assigned center)) < ths4
+#' @param iter.max maximum iteration setting to be used in kmeans
+#' @param n.start parameter to be transferred to kmeans
+#' @param two.step.compress whether to reduce the dictionary only by hierarchical clustering or hier+use top N shapes.
+#' this option gets activated only when the ratio (original dictionary size before compression/target.size) is larger than 10
+#' @param verbose whether to show log or not
+#'
 #' @export
 raw2encoded = function(rawdata, is.clean = F, use.all = T, s.size = 100000, target.size=1000,
                        mode=1, d.metric=1, ths=0.2, iter.max=100, nstart=1, two.step.compress=F,verbose=F){
-  ## useful for individual dictionary generation and encoding
-  ## rdata: rawdata of format n by p matrix
-  ## is.clean: whether to do cleansing or not
-  ## use.all: whether to use all data to generate a dictionary or not
-  ## s.size: sample size to use to generate a dictionary
+
 
   ## 1. cleanse first (impute all zero rows and any null values) but it doesn't detect outliers
   if (!is.clean) cdata = impute(rawdata,uidx=1:ncol(rawdata))
@@ -469,3 +530,5 @@ raw2encoded = function(rawdata, is.clean = F, use.all = T, s.size = 100000, targ
 
   list(clean.data = cdata, dictionary = dic, encoded.data = encoded)
 }
+
+

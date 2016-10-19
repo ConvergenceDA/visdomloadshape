@@ -1,5 +1,5 @@
 # Copyright 2016 The Board of Trustees of the Leland Stanford Junior University.
-# Direct inquiries to Sam Borgeson (sborgeson@stanford.edu) 
+# Direct inquiries to Sam Borgeson (sborgeson@stanford.edu)
 # or professor Ram Rajagopal (ramr@stanford.edu)
 
 getClosest=function(X,y,k,mode=1){
@@ -1326,68 +1326,6 @@ dicdist3 = function(dic,shift.allow=0,d.metric=1){
     dist.mat4[tmp.idx] = dist.mat3[tmp.idx]
     dist.mat4
   } else dist.mat
-}
-
-## this function gets standardized data and create a dictionary
-create_dictionary = function(sdata,target.size=1000, mode=1, d.metric=1, ths=0.2, iter.max=100,
-							 nstart=1, two.step.compress=F,verbose=F){
-  require('akmeans') ## with akmeans version 1.1
-  ## sdata: source data, assume it's already standardized (cleansed and n by p matrix format)
-  ## target.size: wanted dictionary size
-  ## mode: 1: use ths1, 2: use ths2, 3: use ths3, 4: use ths4
-  ## d.metric: 1: use euclidean distance metric, otherwise use cosine distance metric
-  ## ths will be transferred to akmeans parameter according to mode setting
-  ## ths1: threshold to decide whether to increase k or not: check sum((sample-assigned center)^2) < ths1*sum(assigned center^2)
-  ## ths2: threshold to decide whether to increase k or not: check all components of |sample-assigned center| < ths2
-  ## ths3: threshold to decide whether to increase k or not: check inner product of (sample,assigned center) > ths3 , this is only for cosine distance metric
-  ## ths4: threshold to decide whether to increase k or not: check sum(abs(sample-assigned center)) < ths4
-  ## iter.max: maximum iteration setting to be used in kmeans
-  ## n.start: parameter to be transferred to kmeans
-  ## two.step.compress: whether to reduce the dictionary only by hierarchical clustering or hier+use top N shapes.
-  ## two.step.compress, this option gets activated only when the ratio (original dictionary size before compression/target.size) is larger than 10
-  ## verbose: whether to show log or not
-
-  sdata = sdata[apply(sdata,1,sum)>0,]
-  if (d.metric==1) sdata = quick.norm(sdata) ## if euclidean distance, normalize here. for cosine, akmeans will handle
-
-  require('akmeans')
-  akmres = akmeans(x = sdata, min.k = round(target.size/4), max.k = 99999,
-                   mode=mode, d.metric=d.metric, ths1=ths,ths2=ths,ths3=ths,ths4=ths, iter.max=iter.max, nstart=nstart,verbose=verbose)
-  if (two.step.compress & nrow(akmres$centers)/target.size>10) {
-    ratio = nrow(akmres$centers)/target.size
-    rdic1 = reduce.dic2(akmres$centers,akmres$size,t.num=round(target.size*sqrt(ratio)),d.metric=d.metric) ## from empirical tests, root is a sweet spot
-    rdic = rdic1$n.center[order(rdic1$n.cl.size,decreasing=T)[1:target.size],]
-  } else {
-    rdic = reduce.dic2(akmres$centers,akmres$size,t.num=target.size,d.metric=d.metric)$n.center
-  }
-  rdic
-}
-
-raw2encoded = function(rawdata, is.clean = F, use.all = T, s.size = 100000, target.size=1000,
-                       mode=1, d.metric=1, ths=0.2, iter.max=100, nstart=1, two.step.compress=F,verbose=F){
-  ## rdata: rawdata of format n by p matrix
-  ## is.clean: whether to do cleansing or not
-  ## use.all: whether to use all data to generate a dictionary or not
-  ## s.size: sample size to use to generate a dictionary
-
-  ## 1. cleanse first (impute all zero rows and any null values) but it doesn't detect outliers
-  if (!is.clean) cdata = kjs.impute(rawdata,uidx=1:ncol(rawdata))
-  else cdata = rawdata
-
-  ## 2. create a dictionary
-  if (use.all) {
-    dic = create_dictionary(cdata, target.size=target.size, mode=mode, d.metric=d.metric, ths=ths, iter.max=iter.max,
-                                       nstart=nstart, two.step.compress=two.step.compress, verbose=verbose)
-  } else {
-    sidx = sample(nrow(cdata),s.size)
-    dic = create_dictionary(cdata[sidx,], target.size=target.size, mode=mode, d.metric=d.metric, ths=ths, iter.max=iter.max,
-                            nstart=nstart, two.step.compress=two.step.compress, verbose=verbose)
-  }
-
-  ## 3. encode the data: 4 columns: load shape code, daily sum, square err, relative square err
-  encoded = kjs.encode(cdata,dic)
-
-  list(clean.data = cdata, dictionary = dic, encoded.data = encoded)
 }
 
 raw2target = function(rawdata, is.clean = F, id.col = 1, date.col = 2, zip.col = 3, uidx=4:27,
