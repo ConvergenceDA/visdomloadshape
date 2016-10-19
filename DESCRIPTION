@@ -1,9 +1,44 @@
-Package: visdomload
+Package: visdomloadshape
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
-LazyData: TRUE
+Title: R package for load shape clustering and analysis, extending the visdom package
+Version: 0.4
+Date: 2015-09-18
+Authors@R: c(
+    person("Sam", "Borgeson", email = "sam@convergenceda.com", role = c("aut","cre")),
+    person("Jungsuk", "Kwac", email = "kwjusu1@gmail.com", role = "aut"),
+    person("Ram", "Rajagopal", email = "ramr@stanford.edu", role = "aut")
+    )
+URL: https://github.com/sborgeson/visdomloadshape
+BugReports: https://github.com/convergenceda/sborgeson/visdomloadshape
+Depends:
+    R (>= 3.1.0)
+Imports:
+    akmeans (>= 1.1),
+    plyr,
+    dplyr,
+    lubridate,
+    timeDate,
+    cvTools,
+    sandwich,
+    lmtest,
+    AER,
+    RColorBrewer,
+    ggplot2,
+    solaR,
+    gridExtra,
+    testthat,
+    digest,
+    DBI
+Suggests:
+    foreach,
+    doParallel,
+    foreign,
+    knitr,
+    roxygen,
+    rmarkdown
+Description: R package for performing load shape clustering (using adaptive k-means) and related analysis as an extension to the VISDOM Smart Meter data analysis package.
+License: Non-commercial use
+LazyData: true
+LazyLoad: yes
+RoxygenNote: 5.0.1
+VignetteBuilder: knitr
