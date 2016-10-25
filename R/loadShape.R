@@ -470,7 +470,7 @@ create_dictionary = function(sdata,target.size=1000, mode=1, d.metric=1, ths=0.2
   if (d.metric==1) sdata = quick.norm(sdata) ## if euclidean distance, normalize here. for cosine, akmeans will handle
 
   gc()
-  akmres = akmeans::akmeans(x = sdata, min.k = round(target.size/4), max.k = 99999,
+  akmres = akmeans(x = sdata, min.k = round(target.size/4), max.k = 99999,
                    mode=mode, d.metric=d.metric, ths1=ths,ths2=ths,ths3=ths,ths4=ths, iter.max=iter.max, nstart=nstart,verbose=verbose)
   if (two.step.compress & nrow(akmres$centers)/target.size>10) {
     ratio = nrow(akmres$centers)/target.size
