@@ -1093,40 +1093,6 @@ two.t.test = function(a,b,d,conf=0.05){
   list(freq_in_a=wh1,freq_in_b=wh2,tstats=tstats)
 }
 
-## function to draw top n shapes from encoded result
-top.n.shapes = function(en,en.s=0,dic, n=4, show.avg=0){
-## en: encoded data / en.s: encoded daily sum / dic: dictionary
-## n: number of top load shapes / show.avg: show avg consumption per load shape
-  en = as.vector(en)
-  en.s = as.vector(en.s)
-  ten = table(en)
-  top.n = sort(ten,decreasing=T)[1:min(n,length(ten))]
-  top.u = as.numeric(names(top.n))
-
-  if (show.avg){
-    avg.top.n = c()
-    ## avg consumption calculation for top10 shape
-    for (i in 1:length(top.n)){
-      avg.top.n[i] = mean(en.s[en==top.u[i]],na.rm=T)
-    }
-  }
-
-  par(mfrow=c(ceiling(sqrt(length(top.n))),ceiling(sqrt(length(top.n)))))
-  for (i in 1:length(top.n)){
-    if (show.avg){
-      plot(dic[top.u[i],],xlab='Hour',ylab='Norm.Usage',
-           type='o',lwd=2,cex.axis=1.3,cex.lab=1.3,cex.main=1.5,
-           main = paste('#',i,': ',round(top.n[i]/length(en)*100,2),'%\n Avg:',round(avg.top.n[i],2),'kWh'))
-      grid(lwd=2)
-    } else {
-      plot(dic[top.u[i],],xlab='Hour',ylab='Norm.Usage',
-           type='o',lwd=2,cex.axis=1.3,cex.lab=1.3,cex.main=1.5,
-           main = paste('#',i,': ',round(top.n[i]/length(en)*100,2),'%'))
-      grid(lwd=2)
-    }
-  }
-  par(mfrow=c(1,1))
-}
 
 ## calculate EMD btw two different load shapes
 cal.emd1 = function(a,b){
