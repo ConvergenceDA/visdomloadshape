@@ -141,8 +141,13 @@ impute=function(A,uidx=4:99){
 #'
 #' @export
 encode = function(rdata, dic, relerror=0){
+  if ( !all(complete.cases(rdata) ) ) {
+    print(paste('[encode] Warning: missing observations in rdata (NA or NULL) will likely lead to missing value errors.',
+                'Please pass in only complete.cases() or fully interpolated data'))
+  }
 
   n = nrow(rdata); p=ncol(rdata)
+
   ndata = t(apply(rdata,1,function(i){
       if (sum(i)==0) {return(i)}
       else {i/sum(i)}}))
@@ -489,7 +494,9 @@ create_dictionary = function(sdata,target.size=1000, mode=1, d.metric=1, ths=0.2
 #' @description Useful for generation of a load shape cluster center dictionary and encoding in one shot
 #'
 #' @param rdata rawdata of format n by p matrix
-#' @param is.clean whether to do cleansing or not
+#' @param is.clean whether to do data interpolation or not.
+#' Note that the default interpolation method is very memory and CPU intensive.
+#' You may be better off doing your own interpolation or passing only complete.cases().
 #' @param use.all whether to use all data to generate a dictionary or not
 #' @param s.size sample size to use to generate a dictionary
 #' @param target.size target size of the dictionary (i.e. nubmer of clusters)
@@ -507,13 +514,21 @@ create_dictionary = function(sdata,target.size=1000, mode=1, d.metric=1, ths=0.2
 #' @param verbose whether to show log or not
 #'
 #' @export
-raw2encoded = function(rawdata, is.clean = F, use.all = T, s.size = 100000, target.size=1000,
+raw2encoded = function(rawdata, is.clean = T, use.all = T, s.size = 100000, target.size=1000,
                        mode=1, d.metric=1, ths=0.2, iter.max=100, nstart=1, two.step.compress=F,verbose=F){
 
 
   ## 1. cleanse first (impute all zero rows and any null values) but it doesn't detect outliers
-  if (!is.clean) cdata = impute(rawdata,uidx=1:ncol(rawdata))
+  if (!is.clean) {
+    print('[raw2encoded] Warning running data imputation because is.clean=F. This can be very memory and CPU intensive.')
+    cdata = impute(rawdata,uidx=1:ncol(rawdata))
+  }
   else cdata = rawdata
+  if ( !all(complete.cases(cdata) ) ) {
+    print(paste('[raw2encoded] Warning: missing observations in rawdata (NA or NULL) will likely lead to missing value errors.',
+          'Please re-run with is.clean=F, interpolate missing values prior to passing data in, or',
+          'pass in only complete.cases()'))
+  }
 
   ## 2. create a dictionary
   if (use.all) {

@@ -8,9 +8,10 @@
 # dict will be used.
 #' @export
 shapeCategoryEncoding = function(rawData,metaCols=1:4,encoding.dict=NULL) {
-  load(file.path(VISDOM_PATH,'dictionary100.RData'))
+
+  data('dictionary100')
   category.mapped.dict = merged.center # rename loaded dict variable
-  rm(merged.center)
+  #rm(merged.center)
 
   shapeCategories = c('morning peak','day peak','evening peak','night peak',
                       'double peak (morn,eve)','double peak (eve,night)' ,'double peak (day,eve)',
@@ -68,14 +69,14 @@ shapeFeatures = function(d,metaCols=1:4) {
 
   print('Dividing encodings by customer id')
   # encodings broken out per customer
-  cust.encodings = dlply(d$encodings[,c('id','cluster','category','kWh')],
-                         .(id),
+  cust.encodings = plyr::dlply(d$encodings[,c('id','cluster','category','kWh')],
+                         plyr::.(id),
                          .fun=function (x) { return(x[,c('cluster','category','kWh')] ) },
                          .progress='text' )
 
   shape.features = d$encodings[match(unique(d$encodings$id),d$encodings$id),metaCols] # get the first row of data for every customerto use their metadata
   print('Computing entropy')
-  shape.features$entropy = laply(cust.encodings,.fun=function(x) { shannon.entropy2(x$cluster) },.progress='text')
+  shape.features$entropy = plyr::laply(cust.encodings,.fun=function(x) { shannon.entropy2(x$cluster) },.progress='text')
 
   print('Computing category.counts')
   catCount = length(d$shapeCategories)
@@ -83,7 +84,7 @@ shapeFeatures = function(d,metaCols=1:4) {
   shape.stats = list()
   emptyCategories = data.frame(cluster=0,category=1:catCount,kWh=0)
   emptyClusters   = data.frame(cluster=1:clustCount,category=0,kWh=0)
-  shape.stats$category.counts = ldply(cust.encodings,
+  shape.stats$category.counts = plyr::ldply(cust.encodings,
                                .fun=function(x) {
                                  counts = table(c(1:catCount,x$category)) - 1 # add 1:num of clusters so the table fills with all possible values, but then subtract 1 to recover the zeros
                                  return(counts) },
@@ -92,7 +93,7 @@ shapeFeatures = function(d,metaCols=1:4) {
   shape.stats$category.counts$id = paste(shape.stats$category.counts$id)
 
   print('Computing category.energy')
-  shape.stats$category.energy = ldply(cust.encodings,
+  shape.stats$category.energy = plyr::ldply(cust.encodings,
                                .fun=function(x) {
                                  sums = aggregate(kWh~category, data=rbind(emptyCategories,x), sum)
                                  catEnergy = data.frame(t(sums$kWh) )
@@ -103,7 +104,7 @@ shapeFeatures = function(d,metaCols=1:4) {
   shape.stats$category.energy$id = paste(shape.stats$category.energy$id)
 
   print('Computing cluster.counts')
-  shape.stats$cluster.counts = ldply(cust.encodings,
+  shape.stats$cluster.counts = plyr::ldply(cust.encodings,
                                       .fun=function(x) {
                                         counts = table(c(1:clustCount,x$cluster)) - 1 # add 1:num of clusters so the table fills with all possible values, but then subtract 1 to recover the zeros
                                         return(counts) },
@@ -112,7 +113,7 @@ shapeFeatures = function(d,metaCols=1:4) {
   shape.stats$cluster.counts$id = paste(shape.stats$cluster.counts$id)
 
   print('Computing cluster.energy')
-  shape.stats$cluster.energy = ldply(cust.encodings,
+  shape.stats$cluster.energy = plyr::ldply(cust.encodings,
                                       .fun=function(x) {
                                         sums = aggregate(kWh~cluster, data=rbind(emptyClusters,x), sum)
                                         clustEnergy = data.frame(t(sums$kWh) )
