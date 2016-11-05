@@ -1,3 +1,59 @@
+#' @title Prepare load shape data for load shape clustering
+#'
+#' @description Offers several options for cleaning and preparing load shape data, including forcing all data
+#' to be the same duration, subtracting the daily minimum from each day of load, eliminating load shapes that
+#' average less than a minimum power threshold, and down-sampling load data from 24 observations a day to 4.
+#'
+#' @param rawData data.frame of load shape data, with the first n columns assumed to be metadata, which must include an 'id' column, and the last 24 columns as load shape data.
+#' @param forceSameDuration applies a heuristic to preserve only data from ids that have the modal number of days of meter data.
+#' @param subtractMins 'de-mins' data by subtracting the daily min observation from all daily observations.
+#' @param minPower if not null, the function removes load shapes that average less than the provided minPower level.
+#' @param coarseTimePeriods down samples data by averaging 24 columns of meter data observation to 4 6-hour averages.
+#' @param return.mins whether or not to return the daily min values subtracted by subtractMins
+#'
+#' @export
+prepareShapeData = function(rawData,forceSameDuration=F, subtractMins=F, minPower=NULL,coarseTimePeriods=F,return.mins=F) {
+  tic('clean data')
+  badRowIdx = which( rowSums(is.na(rawData))>0 )
+  toc('clean data')
+  print(paste('removing',length(badRowIdx),'out of',nrow(rawData),'due to NAs'))
+  if(length(badRowIdx) != 0) { rawData = rawData[-badRowIdx,] } # removes rows.
+  ncol = ncol(mData)
+  loadCols = (ncol-24+1):ncol
+
+  if( ! is.null(minPower)) {
+    power = rowMeans(rawData[,loadCols],na.rm=T)
+    bads = power < minPower
+    print(paste('Removing',sum(bads),'days for falling under a mean of',minPower,'kW'))
+    rawData = rawData[which(! bads),]
+  }
+  if(subtractMins) {
+    print('remove min of each day')
+    mins = apply(rawData[,loadCols],1,min)
+    rawData[,loadCols] = rawData[,loadCols] - mins
+  }
+  if(forceSameDuration) {
+    tic('id counts')
+    idCounts = table(rawData$id)
+    toc('id counts')
+    fullCount = Mode(idCounts) # full data for the period in question will have this many rows
+    fullDataIds = names(idCounts)[idCounts == fullCount]
+    print(paste('Preserving',
+                sprintf("%.1f",length(fullDataIds)/length(idCounts)*100),
+                '% of the ids with complete data for the time period.'))
+    rawData=rawData[rawData$id %in% fullDataIds,]
+  }
+  if(coarseTimePeriods) {
+    width = 6
+    print('Computing coarse timer periods')
+    coarse = sapply(t(1:(24/width)),function(x) rowMeans(rawData[,ncol -24 + (width*(x-1)+1):(width*x)],na.rm=T))
+    rawData = cbind(rawData[,1:(ncol-24)],coarse)
+  }
+  if(return.mins){
+    rawData=cbind(rawData,mins=mins)
+  }
+  return(rawData)
+}
 
 #' @title calculate shannon entropy
 #'

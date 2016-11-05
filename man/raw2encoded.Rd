@@ -4,12 +4,14 @@
 \alias{raw2encoded}
 \title{Cluster meter data into the best fit shape clusters and return clsuter assignments}
 \usage{
-raw2encoded(rawdata, is.clean = F, use.all = T, s.size = 1e+05,
+raw2encoded(rawdata, is.clean = T, use.all = T, s.size = 1e+05,
   target.size = 1000, mode = 1, d.metric = 1, ths = 0.2,
   iter.max = 100, nstart = 1, two.step.compress = F, verbose = F)
 }
 \arguments{
-\item{is.clean}{whether to do cleansing or not}
+\item{is.clean}{whether to do data interpolation or not.
+Note that the default interpolation method is very memory and CPU intensive.
+You may be better off doing your own interpolation or passing only complete.cases().}
 
 \item{use.all}{whether to use all data to generate a dictionary or not}
 
