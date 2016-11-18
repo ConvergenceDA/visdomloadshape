@@ -67,6 +67,14 @@ cust1Entropy = shannon.entropy(encodings100[cust1Rows,1])
 
 Other options, rmd TODOs:
 ```{r eval=F}
+shapeFeatures = shapeFeatures(shapeCategoryEncoding(rawData=hourlyAlignedData, metaCols=1:4, encoding.dict=dict100 ))
+
+ctx=new.env()
+ctx$fnVector = c(visdom::basicFeatures)
+featureRunRaw = iterator.iterateMeters( DATA_SOURCE$getIds(), visdom::iterator.callAllFromCtx, ctx = ctx)
+features = visdom::iterator.todf( featureRunRaw )
+
+exportFeatureAndShapeResults( feature.data=features, shape.results.data=shapeFeatures, format='csv', filePath='.' )
 # loop through all customers and build an array of entropy values to put into a histogram.
 
 # us the same data to produce the average energy / entropy scatter
