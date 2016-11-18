@@ -74,7 +74,7 @@ ctx$fnVector = c(visdom::basicFeatures)
 featureRunRaw = iterator.iterateMeters( DATA_SOURCE$getIds(), visdom::iterator.callAllFromCtx, ctx = ctx)
 features = visdom::iterator.todf( featureRunRaw )
 
-exportFeatureAndShapeResults( feature.data=features, shape.results.data=shapeFeatures, format='csv', filePath='.' )
+exportFeatureAndShapeResults( feature.data=features, shape.results.data=shapeFeatures, format='csv', filePath='out' )
 # loop through all customers and build an array of entropy values to put into a histogram.
 
 # us the same data to produce the average energy / entropy scatter
