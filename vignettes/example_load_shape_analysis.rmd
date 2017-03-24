@@ -17,11 +17,6 @@ library(visdomloadshape)
 # Instantiate your data source
 DATA_SOURCE = TestData()
 
-# source load shape clustering support functions
-#source('utility.R') # should be 'loadShapeCluter.R'
-#require('akmeans')  # adaptive K-means v1.1 library from CRAN
-#source('akmeans.R') # temporary override required
-
 ```
 
 1. load 1 hour aligned data
