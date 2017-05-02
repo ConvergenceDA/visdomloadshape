@@ -182,7 +182,7 @@ impute=function(A,uidx=4:99){
     }
   }
   if (need) A[,uidx] = m.kNNImpute(A[,uidx], k=2, verbose=F)$x ## use 2-NN
-  reutrn(A)
+  return(A)
 }
 
 #' @title encode meter data load shapes according to an existing dictionary
