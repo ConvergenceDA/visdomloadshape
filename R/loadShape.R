@@ -18,7 +18,7 @@ prepareShapeData = function(rawData,forceSameDuration=F, subtractMins=F, minPowe
   toc('clean data')
   print(paste('removing',length(badRowIdx),'out of',nrow(rawData),'due to NAs'))
   if(length(badRowIdx) != 0) { rawData = rawData[-badRowIdx,] } # removes rows.
-  ncol = ncol(mData)
+  ncol = ncol(rawData)
   loadCols = (ncol-24+1):ncol
 
   if( ! is.null(minPower)) {
